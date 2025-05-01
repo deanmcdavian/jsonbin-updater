@@ -1,0 +1,9 @@
+{
+  "name": "jsonbin-updater",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "update.js",
+  "dependencies": {
+    "node-fetch": "^3.3.2"
+  }
+}
