@@ -1,0 +1,28 @@
+name: Auto Update JSONBin
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'  # Setiap 5 menit
+  workflow_dispatch:       # Bisa dijalankan manual juga
+
+jobs:
+  update-jsonbin:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run script to update JSONBin
+        run: node update.js
+        env:
+          BIN_ID: ${{ secrets.BIN_ID }}
+          API_KEY: ${{ secrets.API_KEY }}
