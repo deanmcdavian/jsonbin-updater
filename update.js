@@ -1,62 +1,80 @@
 import fetch from "node-fetch";
+import cheerio from "cheerio";
 
 const BIN_ID = process.env.BIN_ID;
 const API_KEY = process.env.API_KEY;
+const FORUM_COOKIE = process.env.FORUM_COOKIE;
 
-const newWarrant = {
-  name: "WARRANT - John Doe",
-  date: "2025-05-02\n12:00 WIB",
-  link: "https://example.com/detail/johndoe",
-  risk: "Standard"
-};
+const FORUM_URL = "https://police-state.site/viewforum.php?f=136";
 
-async function updateJSONBin() {
-  // Ambil data saat ini dari JSONBin
-  const getRes = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
-    method: "GET",
+async function fetchForumHTML() {
+  const res = await fetch(FORUM_URL, {
     headers: {
-      "X-Master-Key": API_KEY
+      "Cookie": FORUM_COOKIE,
+      "User-Agent": "Mozilla/5.0 (GitHubActionsBot)"
     }
   });
 
-  if (!getRes.ok) {
-    console.error("❌ Gagal ambil data lama:", await getRes.text());
+  if (!res.ok) {
+    console.error("❌ Gagal ambil halaman forum:", res.status, await res.text());
     process.exit(1);
   }
 
-  const current = await getRes.json();
-  const existing = current.record;
+  return res.text();
+}
 
-  // Cek apakah entri sudah ada
-  const alreadyExists = existing.some(
-    item => item.name === newWarrant.name && item.date === newWarrant.date
-  );
+async function parseForum() {
+  const html = await fetchForumHTML();
+  const $ = cheerio.load(html);
+  const warrants = [];
 
-  let updatedList;
-  if (alreadyExists) {
-    console.log("ℹ️ Entri sudah ada, tidak ditambahkan ulang.");
-    updatedList = existing;
-  } else {
-    updatedList = [...existing, newWarrant];
-    console.log("✅ Entri baru ditambahkan.");
-  }
+  $("li.row").each((_, el) => {
+    const title = $(el).find(".topictitle").text().trim();
+    const href = $(el).find(".topictitle").attr("href");
+    const time = $(el).find(".responsive-show").first().text().trim();
 
-  // Simpan kembali ke JSONBin
-  const putRes = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
+    if (title.toLowerCase().includes("warrant")) {
+      warrants.push({
+        name: title,
+        date: time || new Date().toISOString(),
+        link: "https://police-state.site/" + href,
+        risk: "Standard"
+      });
+    }
+  });
+
+  return warrants;
+}
+
+async function updateJSONBin(data) {
+  const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
       "X-Master-Key": API_KEY
     },
-    body: JSON.stringify(updatedList)
+    body: JSON.stringify(data)
   });
 
-  if (!putRes.ok) {
-    console.error("❌ Gagal simpan data:", await putRes.text());
+  if (!res.ok) {
+    console.error("❌ Gagal update JSONBin:", await res.text());
     process.exit(1);
   }
 
-  console.log("✅ JSONBin berhasil diperbarui.");
+  console.log("✅ JSONBin berhasil diperbarui dengan", data.length, "data.");
 }
 
-updateJSONBin();
+(async () => {
+  try {
+    const warrants = await parseForum();
+    if (warrants.length === 0) {
+      console.log("⚠️ Tidak ada entri ditemukan.");
+      return;
+    }
+
+    await updateJSONBin(warrants);
+  } catch (err) {
+    console.error("❌ ERROR:", err.message);
+    process.exit(1);
+  }
+})();
