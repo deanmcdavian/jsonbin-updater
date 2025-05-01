@@ -3,7 +3,6 @@ import fetch from "node-fetch";
 const BIN_ID = process.env.BIN_ID;
 const API_KEY = process.env.API_KEY;
 
-// Data baru yang ingin ditambahkan
 const newWarrant = {
   name: "WARRANT - John Doe",
   date: "2025-05-02\n12:00 WIB",
@@ -12,7 +11,7 @@ const newWarrant = {
 };
 
 async function updateJSONBin() {
-  // Ambil data yang sudah ada
+  // Ambil data saat ini dari JSONBin
   const getRes = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
     method: "GET",
     headers: {
@@ -21,12 +20,26 @@ async function updateJSONBin() {
   });
 
   if (!getRes.ok) {
-    console.error("Failed to fetch existing data:", await getRes.text());
+    console.error("❌ Gagal ambil data lama:", await getRes.text());
     process.exit(1);
   }
 
   const current = await getRes.json();
-  const updatedList = [...current.record, newWarrant]; // tambahkan entri baru
+  const existing = current.record;
+
+  // Cek apakah entri sudah ada
+  const alreadyExists = existing.some(
+    item => item.name === newWarrant.name && item.date === newWarrant.date
+  );
+
+  let updatedList;
+  if (alreadyExists) {
+    console.log("ℹ️ Entri sudah ada, tidak ditambahkan ulang.");
+    updatedList = existing;
+  } else {
+    updatedList = [...existing, newWarrant];
+    console.log("✅ Entri baru ditambahkan.");
+  }
 
   // Simpan kembali ke JSONBin
   const putRes = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
@@ -39,11 +52,11 @@ async function updateJSONBin() {
   });
 
   if (!putRes.ok) {
-    console.error("Update failed:", await putRes.text());
+    console.error("❌ Gagal simpan data:", await putRes.text());
     process.exit(1);
   }
 
-  console.log("✅ JSONBin updated successfully.");
+  console.log("✅ JSONBin berhasil diperbarui.");
 }
 
 updateJSONBin();
