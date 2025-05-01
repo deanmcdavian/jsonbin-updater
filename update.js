@@ -1,6 +1,5 @@
 import fetch from "node-fetch";
-import cheerio from "cheerio";
-
+import * as cheerio from "cheerio"
 const BIN_ID = process.env.BIN_ID;
 const API_KEY = process.env.API_KEY;
 const FORUM_COOKIE = process.env.FORUM_COOKIE;
