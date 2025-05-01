@@ -13,7 +13,7 @@ const newWarrant = {
 
 async function updateJSONBin() {
   // Ambil data yang sudah ada
-  const getRes = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
+  const getRes = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
     method: "GET",
     headers: {
       "X-Master-Key": API_KEY
