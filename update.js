@@ -1,5 +1,5 @@
 // update.js
-const fetch = require("node-fetch");
+import fetch from "node-fetch";
 
 const BIN_ID = process.env.BIN_ID;
 const API_KEY = process.env.API_KEY;
