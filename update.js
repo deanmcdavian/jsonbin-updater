@@ -11,7 +11,7 @@ async function fetchForumHTML() {
   const res = await fetch(FORUM_URL, {
     headers: {
       "Cookie": FORUM_COOKIE,
-      "User-Agent": "Mozilla/5.0 (GitHubActionsBot)"
+      "User-Agent": "Mozilla/5.0"
     }
   });
 
