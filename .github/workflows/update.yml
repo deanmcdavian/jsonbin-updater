@@ -2,8 +2,8 @@ name: Auto Update JSONBin
 
 on:
   schedule:
-    - cron: '*/1 * * * *'  # Setiap 5 menit
-  workflow_dispatch:       # Bisa dijalankan manual juga
+    - cron: '*/1 * * * *'
+  workflow_dispatch:
 
 jobs:
   update-jsonbin:
@@ -26,3 +26,4 @@ jobs:
         env:
           BIN_ID: ${{ secrets.BIN_ID }}
           API_KEY: ${{ secrets.API_KEY }}
+          FORUM_COOKIE: ${{ secrets.FORUM_COOKIE }}
